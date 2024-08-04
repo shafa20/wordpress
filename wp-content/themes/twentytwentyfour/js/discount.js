@@ -264,6 +264,7 @@ document.addEventListener('change', function () {
     });
 });
 
+//user and role
 document.addEventListener('change', function () {
     // Function to handle the visibility of selectors based on selected radio button
     function handleAppliesToChange() {
