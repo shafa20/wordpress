@@ -697,7 +697,7 @@ function discount_details_meta_box()
 							categories</label>
 
 						<!-- Product Selector -->
-						<div class="product-selector" id="product-selector">
+						<div class="product-selector" id="product-selector" style="display: none;">
 							<div class="search-container">
 								<label for="product-search">Search for products</label>
 								<input type="search" id="product-search" placeholder="Search for products">
