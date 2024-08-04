@@ -542,12 +542,13 @@ add_action('admin_menu', 'add_discounts_menu');
 // Include the custom WP_List_Table class
 require_once get_template_directory() . '/discount-list-table.php';
 // Enqueue the custom JS file for the admin page
-function enqueue_discount_js() {
-    // Ensure the script is only loaded on the Discounts page
-    $screen = get_current_screen();
-    if ( $screen->id === 'toplevel_page_discounts' ) {
-        wp_enqueue_script('discount-js', get_template_directory_uri() . '/js/discount.js', array(), '1.0.0', true);
-    }
+function enqueue_discount_js()
+{
+	// Ensure the script is only loaded on the Discounts page
+	$screen = get_current_screen();
+	if ($screen->id === 'toplevel_page_discounts') {
+		wp_enqueue_script('discount-js', get_template_directory_uri() . '/js/discount.js', array(), '1.0.0', true);
+	}
 }
 add_action('admin_enqueue_scripts', 'enqueue_discount_js');
 
@@ -574,15 +575,15 @@ function discounts_page_content()
 
 		<!-- Hidden form content -->
 		<div id="discount-form-content" style="display:none;">
-            <?php
-            ob_start();
-            discount_details_meta_box(); // Call to render the form content
-            $form_content = ob_get_clean();
-            ?>
-            <div id="form-placeholder-content">
-                <?php echo $form_content; ?>
-            </div>
-        </div>
+			<?php
+			ob_start();
+			discount_details_meta_box(); // Call to render the form content
+			$form_content = ob_get_clean();
+			?>
+			<div id="form-placeholder-content">
+				<?php echo $form_content; ?>
+			</div>
+		</div>
 	</div>
 
 	<style>
@@ -636,7 +637,6 @@ function discounts_page_content()
 		input:checked+.slider:before {
 			transform: translateX(14px);
 		}
-	
 	</style>
 
 
@@ -775,69 +775,51 @@ function discount_details_meta_box()
 
 
 			<tr>
-				<th scope="row"><label for="applies_to">Applies to</label></th>
-				<td>
-					<fieldset>
-						<label><input type="radio" name="applies_to" value="everyone" checked> Everyone</label><br>
-						<label><input type="radio" name="applies_to" value="selected_roles"> Selected roles</label><br>
-						<label><input type="radio" name="applies_to" value="selected_users"> Selected users</label>
-					</fieldset>
-				</td>
-			</tr>
+    <th scope="row"><label for="applies_to">Applies to</label></th>
+    <td>
+        <fieldset>
+            <label><input type="radio" name="applies_to" value="everyone" checked> Everyone</label><br>
+            <label><input type="radio" name="applies_to" value="selected_roles"> Selected roles</label><br>
+            <label><input type="radio" name="applies_to" value="selected_users"> Selected users</label>
+        </fieldset>
 
-			
-
-			<tr class="exmp" id="exmp">
-    <td class="">
-        <label for="exclusions"><span>Exclusions</span></label>
-    </td>
-    <td class="">
-        <div class="product-category-wrapper">
-            <div class="product-search">
-                <label for="product-search">Search for products</label>
-                <input class="components-text-control__input" type="search" id="product-search" placeholder="Search for products">
-                <ul id="product-list" class="search-list">
-                    <!-- Product items will be listed here -->
-                    <li>
-                        <label>
-                            <input type="checkbox" name="products" value="product1">
-                            <span>Product 1</span>
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="checkbox" name="products" value="product2">
-                            <span>Product 2</span>
-                        </label>
-                    </li>
-                </ul>
-                <button id="clear-products" type="button">Clear All Products</button>
-                <ul id="selected-products-list" class="selected-list">
-                    <!-- Selected products will be listed here -->
-                </ul>
+        <!-- Role Selector -->
+        <div class="role-selector" id="role-selector" style="display: none;">
+            <div class="search-container">
+                <label for="role-search">Search for roles</label>
+                <input type="search" id="role-search" placeholder="Search for roles">
             </div>
-            <div class="category-search">
-                <label for="category-search">Search for categories</label>
-                <input class="components-text-control__input" type="search" id="category-search" placeholder="Search for categories">
-                <ul id="category-list" class="search-list">
-                    <!-- Category items will be listed here -->
-                    <li>
-                        <label>
-                            <input type="checkbox" name="categories" value="category1">
-                            <span>Category 1</span>
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="checkbox" name="categories" value="category2">
-                            <span>Category 2</span>
-                        </label>
-                    </li>
-                </ul>
-                <button id="clear-categories" type="button">Clear All Categories</button>
-                <ul id="selected-categories-list" class="selected-list">
-                    <!-- Selected categories will be listed here -->
-                </ul>
+            <ul id="role-list" class="role-list">
+                <li><input type="checkbox" id="role-1" value="Admin"><label for="role-1">Admin</label></li>
+                <li><input type="checkbox" id="role-2" value="Editor"><label for="role-2">Editor</label></li>
+                <!-- Add more roles as needed -->
+            </ul>
+            <div class="selected-roles">
+                <div class="selected-header">
+                    <strong>Selected roles</strong>
+                    <button type="button" id="clear-roles" class="clear-all" style="display: none;">Clear all</button>
+                </div>
+                <ul id="selected-roles-list"></ul>
+            </div>
+        </div>
+
+        <!-- User Selector -->
+        <div class="user-selector" id="user-selector" style="display: none;">
+            <div class="search-container">
+                <label for="user-search">Search for users</label>
+                <input type="search" id="user-search" placeholder="Search for users">
+            </div>
+            <ul id="user-list" class="user-list">
+                <li><input type="checkbox" id="user-1" value="John Doe"><label for="user-1">John Doe</label></li>
+                <li><input type="checkbox" id="user-2" value="Jane Smith"><label for="user-2">Jane Smith</label></li>
+                <!-- Add more users as needed -->
+            </ul>
+            <div class="selected-users">
+                <div class="selected-header">
+                    <strong>Selected users</strong>
+                    <button type="button" id="clear-users" class="clear-all" style="display: none;">Clear all</button>
+                </div>
+                <ul id="selected-users-list"></ul>
             </div>
         </div>
     </td>
@@ -845,110 +827,64 @@ function discount_details_meta_box()
 
 
 
-<script>
-document.addEventListener('change', function () {
-    // Function to filter list items based on search input
-    function filterItems(searchInput, list) {
-        const searchTerm = searchInput.value.toLowerCase();
-        const items = list.querySelectorAll('li');
-        items.forEach(item => {
-            const label = item.textContent.toLowerCase();
-            item.style.display = label.includes(searchTerm) ? '' : 'none';
-        });
-    }
 
-    // Function to update the selected list and toggle the clear button
-    function updateSelectedList(list, selectedList, clearButton) {
-        selectedList.innerHTML = ''; // Clear the selected list
-        let hasSelectedItems = false;
-        const checkboxes = list.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                hasSelectedItems = true;
-                const listItem = document.createElement('li');
-                listItem.classList.add('selected-item');
-                listItem.innerHTML = `
-                    <span>${checkbox.nextElementSibling.textContent}</span>
-                    <button type="button" class="remove-item" data-value="${checkbox.value}">×</button>
-                `;
-                selectedList.appendChild(listItem);
-            }
-        });
-        clearButton.style.display = hasSelectedItems ? 'block' : 'none'; // Show or hide the button based on selection
-    }
-
-    // Function to handle item removal
-    function handleItemRemoval(event, list, selectedList, clearButton) {
-        if (event.target.classList.contains('remove-item')) {
-            const value = event.target.getAttribute('data-value');
-            const checkbox = list.querySelector(`input[type="checkbox"][value="${value}"]`);
-            if (checkbox) {
-                checkbox.checked = false;
-                updateSelectedList(list, selectedList, clearButton);
-            }
-        }
-    }
-
-    // Initialize search and clear buttons for products
-    const productSearch = document.getElementById('product-search');
-    const productList = document.getElementById('product-list');
-    const selectedProductsList = document.getElementById('selected-products-list');
-    const clearProductsButton = document.getElementById('clear-products');
-
-    productSearch.addEventListener('input', function () {
-        filterItems(productSearch, productList);
-    });
-
-    productList.addEventListener('change', function () {
-        updateSelectedList(productList, selectedProductsList, clearProductsButton);
-    });
-
-    selectedProductsList.addEventListener('click', function (event) {
-        handleItemRemoval(event, productList, selectedProductsList, clearProductsButton);
-    });
-
-    clearProductsButton.addEventListener('click', function () {
-        const checkboxes = productList.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateSelectedList(productList, selectedProductsList, clearProductsButton);
-    });
-
-    // Initialize search and clear buttons for categories
-    const categorySearch = document.getElementById('category-search');
-    const categoryList = document.getElementById('category-list');
-    const selectedCategoriesList = document.getElementById('selected-categories-list');
-    const clearCategoriesButton = document.getElementById('clear-categories');
-
-    categorySearch.addEventListener('input', function () {
-        filterItems(categorySearch, categoryList);
-    });
-
-    categoryList.addEventListener('change', function () {
-        updateSelectedList(categoryList, selectedCategoriesList, clearCategoriesButton);
-    });
-
-    selectedCategoriesList.addEventListener('click', function (event) {
-        handleItemRemoval(event, categoryList, selectedCategoriesList, clearCategoriesButton);
-    });
-
-    clearCategoriesButton.addEventListener('click', function () {
-        const checkboxes = categoryList.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateSelectedList(categoryList, selectedCategoriesList, clearCategoriesButton);
-    });
-});
-
-
-</script>
-
-
-
-
-
+			<tr class="exmp" id="exmp">
+				<td class="">
+					<label for="exclusions"><span>Exclusions</span></label>
+				</td>
+				<td class="">
+					<div class="product-category-wrapper">
+						<div class="product-search">
+							<label for="product-search">Search for products</label>
+							<input class="components-text-control__input" type="search" id="product-search"
+								placeholder="Search for products">
+							<ul id="product-list" class="search-list">
+								<!-- Product items will be listed here -->
+								<li>
+									<label>
+										<input type="checkbox" name="products" value="product1">
+										<span>Product 1</span>
+									</label>
+								</li>
+								<li>
+									<label>
+										<input type="checkbox" name="products" value="product2">
+										<span>Product 2</span>
+									</label>
+								</li>
+							</ul>
+							<button id="clear-products" type="button">Clear All Products</button>
+							<ul id="selected-products-list" class="selected-list">
+								<!-- Selected products will be listed here -->
+							</ul>
+						</div>
+						<div class="category-search">
+							<label for="category-search">Search for categories</label>
+							<input class="components-text-control__input" type="search" id="category-search"
+								placeholder="Search for categories">
+							<ul id="category-list" class="search-list">
+								<!-- Category items will be listed here -->
+								<li>
+									<label>
+										<input type="checkbox" name="categories" value="category1">
+										<span>Category 1</span>
+									</label>
+								</li>
+								<li>
+									<label>
+										<input type="checkbox" name="categories" value="category2">
+										<span>Category 2</span>
+									</label>
+								</li>
+							</ul>
+							<button id="clear-categories" type="button">Clear All Categories</button>
+							<ul id="selected-categories-list" class="selected-list">
+								<!-- Selected categories will be listed here -->
+							</ul>
+						</div>
+					</div>
+				</td>
+			</tr>
 			<tr>
 				<th scope="row"><label for="availability">Availability <span
 							class="dashicon dashicons dashicons-editor-help barn2-help-tip"></span></label></th>

@@ -263,3 +263,129 @@ document.addEventListener('change', function () {
         updateSelectedList(categoryList, selectedCategoriesList, clearCategoriesButton);
     });
 });
+
+document.addEventListener('change', function () {
+    // Function to handle the visibility of selectors based on selected radio button
+    function handleAppliesToChange() {
+        const selectedAppliesTo = document.querySelector('input[name="applies_to"]:checked').value;
+        document.getElementById('role-selector').style.display = selectedAppliesTo === 'selected_roles' ? 'block' : 'none';
+        document.getElementById('user-selector').style.display = selectedAppliesTo === 'selected_users' ? 'block' : 'none';
+        // Update the visibility of clear buttons based on current selections
+        updateClearButtonVisibility();
+    }
+
+    // Function to filter list items based on search input
+    function filterItems(searchInput, list) {
+        const searchTerm = searchInput.value.toLowerCase();
+        const items = list.querySelectorAll('li');
+        items.forEach(item => {
+            const label = item.textContent.toLowerCase();
+            item.style.display = label.includes(searchTerm) ? '' : 'none';
+        });
+    }
+
+    // Function to update the selected list and toggle the clear button
+    function updateSelectedList(list, selectedList, clearButton) {
+        selectedList.innerHTML = ''; // Clear the selected list
+        let hasSelectedItems = false;
+        const checkboxes = list.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                hasSelectedItems = true;
+                const listItem = document.createElement('li');
+                listItem.classList.add('selected-item');
+                listItem.innerHTML = `
+                    <span>${checkbox.nextElementSibling.textContent}</span>
+                    <button type="button" class="remove-item" data-value="${checkbox.value}">×</button>
+                `;
+                selectedList.appendChild(listItem);
+            }
+        });
+        // Show or hide the button based on selection
+        clearButton.style.display = hasSelectedItems ? 'block' : 'none'; 
+        updateClearButtonVisibility(); // Ensure clear button visibility is updated
+    }
+
+    // Function to handle item removal
+    function handleItemRemoval(event, list, selectedList, clearButton) {
+        if (event.target.classList.contains('remove-item')) {
+            const value = event.target.getAttribute('data-value');
+            const checkbox = list.querySelector(`input[type="checkbox"][value="${value}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+                updateSelectedList(list, selectedList, clearButton);
+            }
+        }
+    }
+
+    // Function to update the visibility of clear buttons
+    function updateClearButtonVisibility() {
+        const selectedRolesList = document.getElementById('selected-roles-list');
+        const clearRolesButton = document.getElementById('clear-roles');
+        const selectedUsersList = document.getElementById('selected-users-list');
+        const clearUsersButton = document.getElementById('clear-users');
+
+        const hasSelectedRoles = selectedRolesList.children.length > 0;
+        const hasSelectedUsers = selectedUsersList.children.length > 0;
+
+        clearRolesButton.style.display = hasSelectedRoles ? 'block' : 'none';
+        clearUsersButton.style.display = hasSelectedUsers ? 'block' : 'none';
+    }
+
+    // Event listener for radio buttons
+    document.querySelectorAll('input[name="applies_to"]').forEach(radio => {
+        radio.addEventListener('change', handleAppliesToChange);
+    });
+
+    // Initialize search and clear buttons for roles
+    const roleSearch = document.getElementById('role-search');
+    const roleList = document.getElementById('role-list');
+    const selectedRolesList = document.getElementById('selected-roles-list');
+    const clearRolesButton = document.getElementById('clear-roles');
+
+    roleSearch.addEventListener('input', function () {
+        filterItems(roleSearch, roleList);
+    });
+
+    roleList.addEventListener('change', function () {
+        updateSelectedList(roleList, selectedRolesList, clearRolesButton);
+    });
+
+    selectedRolesList.addEventListener('click', function (event) {
+        handleItemRemoval(event, roleList, selectedRolesList, clearRolesButton);
+    });
+
+    clearRolesButton.addEventListener('click', function () {
+        const checkboxes = roleList.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedList(roleList, selectedRolesList, clearRolesButton);
+    });
+
+    // Initialize search and clear buttons for users
+    const userSearch = document.getElementById('user-search');
+    const userList = document.getElementById('user-list');
+    const selectedUsersList = document.getElementById('selected-users-list');
+    const clearUsersButton = document.getElementById('clear-users');
+
+    userSearch.addEventListener('input', function () {
+        filterItems(userSearch, userList);
+    });
+
+    userList.addEventListener('change', function () {
+        updateSelectedList(userList, selectedUsersList, clearUsersButton);
+    });
+
+    selectedUsersList.addEventListener('click', function (event) {
+        handleItemRemoval(event, userList, selectedUsersList, clearUsersButton);
+    });
+
+    clearUsersButton.addEventListener('click', function () {
+        const checkboxes = userList.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedList(userList, selectedUsersList, clearUsersButton);
+    });
+});
