@@ -524,38 +524,141 @@ function price_update_page()
 // Hook to add custom menu
 add_action('admin_menu', 'add_discounts_menu');
 
-function add_discounts_menu()
-{
-	add_menu_page(
-		'Discounts',            // Page title
-		'Discounts',            // Menu title
-		'manage_options',       // Capability required
-		'discounts',            // Menu slug
-		'discounts_page_content', // Callback function
-		'dashicons-tag',        // Icon URL (optional)
-		6                       // Position (optional)
-	);
-}
+// function add_discounts_menu()
+// {
+// 	add_menu_page(
+// 		'Discounts',            // Page title
+// 		'Discounts',            // Menu title
+// 		'manage_options',       // Capability required
+// 		'discounts',            // Menu slug
+// 		'discounts_page_content', // Callback function
+// 		'dashicons-tag',        // Icon URL (optional)
+// 		6                       // Position (optional)
+// 	);
+// }
 
-// Hook to add custom menu
+// // Hook to add custom menu
+// add_action('admin_menu', 'add_discounts_menu');
+// wp-content/themes/twentytwentyfour/functions.php
+function add_discounts_menu() {
+    add_menu_page(
+        'Discounts',            // Page title
+        'Discounts',            // Menu title
+        'manage_options',       // Capability required
+        'discounts',            // Menu slug
+        'discounts_page_content', // Callback function
+        'dashicons-tag',        // Icon URL (optional)
+        6                       // Position (optional)
+    );
+
+    // Add submenu for adding new discounts
+    add_submenu_page(
+        'discounts',            // Parent slug
+        'Add New Discount',     // Page title
+        'Add New',              // Menu title
+        'manage_options',       // Capability required
+        'add-discount',         // Menu slug
+        'add_discount_page'     // Callback function
+    );
+}
 add_action('admin_menu', 'add_discounts_menu');
+
+
 // Include the custom WP_List_Table class
 require_once get_template_directory() . '/discount-list-table.php';
-// Enqueue the custom JS file for the admin page
-function enqueue_discount_js()
-{
-	// Ensure the script is only loaded on the Discounts page
-	$screen = get_current_screen();
-	if ($screen->id === 'toplevel_page_discounts') {
-		wp_enqueue_script('discount-js', get_template_directory_uri() . '/js/discount.js', array(), '1.0.0', true);
-	}
+// Include the custom WP_List_Table class
+require_once get_template_directory() . '/add-discount.php';
+// Enqueue the custom JS file for the Add Discount page
+function enqueue_add_discount_js() {
+    $screen = get_current_screen();
+    if ($screen->id === 'discounts_page_add-discount') { // Ensure the correct screen ID
+        wp_enqueue_script('add-discount-js', get_template_directory_uri() . '/js/add-discount.js', array('jquery'), '1.0.0', true);
+        wp_localize_script('add-discount-js', 'discounts_params', array(
+            'ajax_url' => admin_url('admin-ajax.php') // Localize `ajax_url` for AJAX requests
+        ));
+    }
 }
-add_action('admin_enqueue_scripts', 'enqueue_discount_js');
+add_action('admin_enqueue_scripts', 'enqueue_add_discount_js');
+
+// Enqueue the custom JS file for the admin page
+// function enqueue_discount_js()
+// {
+// 	// Ensure the script is only loaded on the Discounts page
+// 	$screen = get_current_screen();
+// 	if ($screen->id === 'toplevel_page_discounts') {
+// 		wp_enqueue_script('discount-js', get_template_directory_uri() . '/js/discount.js', array(), '1.0.0', true);
+// 	}
+// }
+// add_action('admin_enqueue_scripts', 'enqueue_discount_js');
+
+// wp-content/themes/twentytwentyfour/functions.php
+function discounts_page_content() {
+    ?>
+    <div class="wrap">
+        <h1>Discounts</h1>
+        <div class="wdm-admin-page-title">
+            <h2>Discounts
+                <a class="page-title-action" href="<?php echo admin_url('admin.php?page=add-discount'); ?>">Add New</a>
+            </h2>
+        </div>
+
+        <!-- The table displaying the discounts -->
+        <?php
+        $exampleListTable = new Example_List_Table2();
+        $exampleListTable->prepare_items();
+        $exampleListTable->display();
+        ?>
+    </div>
+    <?php
+}
+
+// Register AJAX action for fetching products
+add_action('wp_ajax_fetch_products', 'fetch_products');
+add_action('wp_ajax_nopriv_fetch_products', 'fetch_products');
+
+function fetch_products() {
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => -1
+    );
+    $products = get_posts($args);
+    $response = array();
+
+    foreach ($products as $product) {
+        $response[] = array(
+            'id' => $product->ID,
+            'name' => $product->post_title
+        );
+    }
+
+    wp_send_json_success($response);
+}
+
+// Register AJAX action for fetching categories
+add_action('wp_ajax_fetch_categories', 'fetch_categories');
+add_action('wp_ajax_nopriv_fetch_categories', 'fetch_categories');
+
+function fetch_categories() {
+    $args = array(
+        'taxonomy'   => 'product_cat',
+        'hide_empty' => false
+    );
+    $categories = get_terms($args);
+    $response = array();
+
+    foreach ($categories as $category) {
+        $response[] = array(
+            'id' => $category->term_id,
+            'name' => $category->name
+        );
+    }
+
+    wp_send_json_success($response);
+}
 
 
 
-
-function discounts_page_content()
+function discounts_page_content1()
 {
 	?>
 	<div class="wrap">
@@ -585,81 +688,15 @@ function discounts_page_content()
 			</div>
 		</div>
 	</div>
-
-	<style>
-		/* Style the switch container */
-		.switch {
-			position: relative;
-			display: inline-block;
-			width: 34px;
-			height: 20px;
-		}
-
-		/* Hide default HTML checkbox */
-		.switch input {
-			opacity: 0;
-			width: 0;
-			height: 0;
-		}
-
-		/* Style the slider */
-		.slider {
-			position: absolute;
-			cursor: pointer;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background-color: #ccc;
-			transition: .4s;
-			border-radius: 20px;
-		}
-
-		/* Slider before */
-		.slider:before {
-			position: absolute;
-			content: "";
-			height: 12px;
-			width: 12px;
-			border-radius: 50%;
-			left: 4px;
-			bottom: 4px;
-			background-color: white;
-			transition: .4s;
-		}
-
-		/* Checked slider */
-		input:checked+.slider {
-			background-color: #2196F3;
-		}
-
-		/* Move slider when checked */
-		input:checked+.slider:before {
-			transform: translateX(14px);
-		}
-	</style>
-
-
 	<?php
 }
-function my_enqueue_admin_scripts()
-{
-	wp_enqueue_script('jquery');
-	wp_enqueue_script('thickbox');
-	wp_enqueue_style('thickbox');
-	wp_enqueue_script('media-upload');
-	wp_enqueue_script('wp-editor');
-	wp_enqueue_style('wp-edit-blocks');
-	wp_enqueue_style('editor-buttons');
-	wp_enqueue_script('quicktags');
-	wp_enqueue_script('editor');
-	wp_enqueue_script('wplink');
-}
-add_action('admin_enqueue_scripts', 'my_enqueue_admin_scripts');
 
 
-// Function to render the discount details meta box content
-function discount_details_meta_box()
+
+
+
+//function meta box content new
+function discount_details_meta_box1()
 {
 	?>
 	<form id="discount-form">
@@ -671,16 +708,7 @@ function discount_details_meta_box()
 						class="regular-text components-text-control__input"></td>
 			</tr>
 
-			<tr>
-				<th scope="row"><label for="discount_type">Discount type</label></th>
-				<td>
-					<select id="discount_type" name="discount_type" class="components-base-control__field">
-						<option value="simple">Simple</option>
-						<option value="total_spend">Based on total spend</option>
-					</select>
-				</td>
-			</tr>
-
+			
 			<tr>
 				<th scope="row">
 					<label for="which_products">Which products?
@@ -712,7 +740,8 @@ function discount_details_meta_box()
 							<div class="selected-products">
 								<div class="selected-header">
 									<strong>Selected products</strong>
-									<button type="button" id="clear-products" class="clear-all">Clear all</button>
+									<button type="button" id="clear-products" class="clear-all" style="display: none;">Clear
+										all</button>
 								</div>
 								<ul id="selected-products-list"></ul>
 							</div>
@@ -734,14 +763,14 @@ function discount_details_meta_box()
 							<div class="selected-categories">
 								<div class="selected-header">
 									<strong>Selected categories</strong>
-									<button type="button" id="clear-categories" class="clear-all">Clear all</button>
+									<button type="button" id="clear-categories" class="clear-all"
+										style="display: none;">Clear all</button>
 								</div>
 								<ul id="selected-categories-list"></ul>
 							</div>
 						</div>
 					</fieldset>
 				</td>
-
 			</tr>
 			<tr>
 				<th scope="row"><label for="discount">Discount</label></th>
@@ -752,15 +781,237 @@ function discount_details_meta_box()
 						<br>
 						<label><input type="radio" name="discount_type" value="fixed_discount"> Fixed discount</label>
 
-						<div class="">
-							<div class=""><span class="">%</span><input class="" type="text" value="0">
+						<div class="" id="discount-element">
+							<div class="" id="percentage-element">
+								<span class="">%</span>
+								<input class="" type="text" value="0">
+								<div class=""></div>
+							</div>
+							<div class="" id="fixed-discount-element" style="display: none;">
+								<span class="">$</span>
+								<input class="" type="text" value="0.00">
 								<div class=""></div>
 							</div>
 						</div>
 					</fieldset>
 				</td>
+			</tr>
+
+
+			<tr>
+
+				<th scope="row"><label for="sale_badge">Sale badge</label></th>
+				<td>
+					<input type="checkbox" id="sale_badge" name="sale_badge" checked>
+					<label for="sale_badge">Display a sale badge on products eligible for this discount</label>
+				</td>
+
 
 			</tr>
+
+
+
+			<tr class="exmp" id="exmp">
+				<td class="">
+					<label for="exclusions"><span>Exclusions</span></label>
+				</td>
+				<td class="">
+					<div class="exclusions-product-category-wrapper">
+						<!-- Product Selector -->
+						<div class="exclusions-product-selector" id="exclusion-product-selector">
+							<div class="exclusions-search-container">
+								<label for="exclusions-product-search">Search for products</label>
+								<input type="search" id="exclusions-product-search" placeholder="Search for products">
+							</div>
+							<ul id="exclusions-product-list" class="exclusions-product-list">
+								<li><input type="checkbox" id="exclusions-product-1" value="Beanie"><label
+										for="exclusions-product-1">Beanie</label></li>
+								<li><input type="checkbox" id="exclusions-product-2" value="Beanie with Logo"><label
+										for="exclusions-product-2">Beanie with Logo</label></li>
+								<!-- Add more products as needed -->
+							</ul>
+							<div class="exclusions-selected-products" style="display: none;">
+								<div class="exclusions-selected-header">
+									<strong>Exclusions Selected products</strong>
+									<button type="button" id="exclusions-clear-products" class="exclusions-clear-all"
+										style="display: none;">Clear</button>
+								</div>
+								<ul id="exclusions-selected-products-list"></ul>
+							</div>
+						</div>
+						<!-- Category Selector -->
+						<div class="exclusions-category-selector" id="exclusion-category-selector">
+							<div class="exclusions-search-container">
+								<label for="exclusions-category-search">Search for categories</label>
+								<input type="search" id="exclusions-category-search" placeholder="Search for categories">
+							</div>
+							<ul id="exclusions-category-list" class="exclusions-category-list">
+								<li><input type="checkbox" id="exclusions-category-1" value="Category 1"><label
+										for="exclusions-category-1">Category 1</label></li>
+								<li><input type="checkbox" id="exclusions-category-2" value="Category 2"><label
+										for="exclusions-category-2">Category 2</label></li>
+								<!-- Add more categories as needed -->
+							</ul>
+							<div class="exclusions-selected-categories" style="display: none;">
+								<div class="exclusions-selected-header">
+									<strong>Selected categories</strong>
+									<button type="button" id="exclusions-clear-categories" class="exclusions-clear-all"
+										style="display: none;">Clear</button>
+								</div>
+								<ul id="exclusions-selected-categories-list"></ul>
+							</div>
+						</div>
+					</div>
+				</td>
+			</tr>
+
+
+			<tr>
+				<th scope="row"><label for="availability">Availability <span
+							class="dashicon dashicons dashicons-editor-help barn2-help-tip"></span></label></th>
+				<td>
+					<fieldset>
+						<label>
+							<input type="radio" name="availability" value="always_available" id="always_available" checked>
+							Always available
+						</label><br>
+						<label>
+							<input type="radio" name="availability" value="specific_dates" id="specific_dates">
+							Specific dates
+						</label>
+					</fieldset>
+					<div id="date-fields" style="display:none;">
+						<label for="start-date">Start Date:</label>
+						<input type="date" id="start-date" name="start-date">
+						<label for="end-date">End Date:</label>
+						<input type="date" id="end-date" name="end-date">
+					</div>
+				</td>
+			</tr>
+
+			<tr>
+				<th scope="row"></th>
+				<td>
+					<input type="submit" class="button button-primary" value="Save">
+				</td>
+			</tr>
+
+		</table>
+	</form>
+
+	<?php
+}
+
+// Function to render the discount details meta box content old
+function discount_details_meta_box2()
+{
+	?>
+	<form id="discount-form">
+		<table class="form-table">
+			<tr>
+				<th scope="row"><label for="discount_name">Discount name</label><span
+						class="dashicon dashicons dashicons-editor-help barn2-help-tip"></span></th>
+				<td><input type="text" id="discount_name" name="discount_name"
+						class="regular-text components-text-control__input"></td>
+			</tr>
+
+			<tr>
+				<th scope="row"><label for="discount_type">Discount type</label></th>
+				<td>
+					<select id="discount_type" name="discount_type" class="components-base-control__field">
+						<option value="simple">Simple</option>
+						<option value="total_spend">Based on total spend</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label for="which_products">Which products?
+						<span class="dashicon dashicons dashicons-editor-help barn2-help-tip"></span>
+					</label>
+				</th>
+				<td>
+					<fieldset>
+						<label><input type="radio" name="which_products" value="all_products" checked> All
+							products</label><br>
+						<label><input type="radio" name="which_products" value="selected_products"> Selected
+							products</label><br>
+						<label><input type="radio" name="which_products" value="selected_categories"> Selected
+							categories</label>
+
+						<!-- Product Selector -->
+						<div class="product-selector" id="product-selector" style="display: none;">
+							<div class="search-container">
+								<label for="product-search">Search for products</label>
+								<input type="search" id="product-search" placeholder="Search for products">
+							</div>
+							<ul id="product-list" class="product-list">
+								<li><input type="checkbox" id="product-1" value="Beanie"><label
+										for="product-1">Beanie</label></li>
+								<li><input type="checkbox" id="product-2" value="Beanie with Logo"><label
+										for="product-2">Beanie with Logo</label></li>
+								<!-- Add more products as needed -->
+							</ul>
+							<div class="selected-products">
+								<div class="selected-header">
+									<strong>Selected products</strong>
+									<button type="button" id="clear-products" class="clear-all" style="display: none;">Clear
+										all</button>
+								</div>
+								<ul id="selected-products-list"></ul>
+							</div>
+						</div>
+
+						<!-- Category Selector -->
+						<div class="category-selector" id="category-selector" style="display: none;">
+							<div class="search-container">
+								<label for="category-search">Search for categories</label>
+								<input type="search" id="category-search" placeholder="Search for categories">
+							</div>
+							<ul id="category-list" class="category-list">
+								<li><input type="checkbox" id="category-1" value="Category 1"><label
+										for="category-1">Category 1</label></li>
+								<li><input type="checkbox" id="category-2" value="Category 2"><label
+										for="category-2">Category 2</label></li>
+								<!-- Add more categories as needed -->
+							</ul>
+							<div class="selected-categories">
+								<div class="selected-header">
+									<strong>Selected categories</strong>
+									<button type="button" id="clear-categories" class="clear-all"
+										style="display: none;">Clear all</button>
+								</div>
+								<ul id="selected-categories-list"></ul>
+							</div>
+						</div>
+					</fieldset>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="discount">Discount</label></th>
+				<td>
+					<fieldset>
+						<label><input type="radio" name="discount_type" value="percentage_discount" checked> Percentage
+							discount</label>
+						<br>
+						<label><input type="radio" name="discount_type" value="fixed_discount"> Fixed discount</label>
+
+						<div class="" id="discount-element">
+							<div class="" id="percentage-element">
+								<span class="">%</span>
+								<input class="" type="text" value="0">
+								<div class=""></div>
+							</div>
+							<div class="" id="fixed-discount-element" style="display: none;">
+								<span class="">$</span>
+								<input class="" type="text" value="0.00">
+								<div class=""></div>
+							</div>
+						</div>
+					</fieldset>
+				</td>
+			</tr>
+
 
 			<tr>
 
@@ -775,55 +1026,59 @@ function discount_details_meta_box()
 
 
 			<tr>
-    <th scope="row"><label for="applies_to">Applies to</label></th>
-    <td>
-        <fieldset>
-            <label><input type="radio" name="applies_to" value="everyone" checked> Everyone</label><br>
-            <label><input type="radio" name="applies_to" value="selected_roles"> Selected roles</label><br>
-            <label><input type="radio" name="applies_to" value="selected_users"> Selected users</label>
-        </fieldset>
+				<th scope="row"><label for="applies_to">Applies to</label></th>
+				<td>
+					<fieldset>
+						<label><input type="radio" name="applies_to" value="everyone" checked> Everyone</label><br>
+						<label><input type="radio" name="applies_to" value="selected_roles"> Selected roles</label><br>
+						<label><input type="radio" name="applies_to" value="selected_users"> Selected users</label>
+					</fieldset>
 
-        <!-- Role Selector -->
-        <div class="role-selector" id="role-selector" style="display: none;">
-            <div class="search-container">
-                <label for="role-search">Search for roles</label>
-                <input type="search" id="role-search" placeholder="Search for roles">
-            </div>
-            <ul id="role-list" class="role-list">
-                <li><input type="checkbox" id="role-1" value="Admin"><label for="role-1">Admin</label></li>
-                <li><input type="checkbox" id="role-2" value="Editor"><label for="role-2">Editor</label></li>
-                <!-- Add more roles as needed -->
-            </ul>
-            <div class="selected-roles">
-                <div class="selected-header">
-                    <strong>Selected roles</strong>
-                    <button type="button" id="clear-roles" class="clear-all" style="display: none;">Clear all</button>
-                </div>
-                <ul id="selected-roles-list"></ul>
-            </div>
-        </div>
+					<!-- Role Selector -->
+					<div class="role-selector" id="role-selector" style="display: none;">
+						<div class="search-container">
+							<label for="role-search">Search for roles</label>
+							<input type="search" id="role-search" placeholder="Search for roles">
+						</div>
+						<ul id="role-list" class="role-list">
+							<li><input type="checkbox" id="role-1" value="Admin"><label for="role-1">Admin</label></li>
+							<li><input type="checkbox" id="role-2" value="Editor"><label for="role-2">Editor</label></li>
+							<!-- Add more roles as needed -->
+						</ul>
+						<div class="selected-roles">
+							<div class="selected-header">
+								<strong>Selected roles</strong>
+								<button type="button" id="clear-roles" class="clear-all" style="display: none;">Clear
+									all</button>
+							</div>
+							<ul id="selected-roles-list"></ul>
+						</div>
+					</div>
 
-        <!-- User Selector -->
-        <div class="user-selector" id="user-selector" style="display: none;">
-            <div class="search-container">
-                <label for="user-search">Search for users</label>
-                <input type="search" id="user-search" placeholder="Search for users">
-            </div>
-            <ul id="user-list" class="user-list">
-                <li><input type="checkbox" id="user-1" value="John Doe"><label for="user-1">John Doe</label></li>
-                <li><input type="checkbox" id="user-2" value="Jane Smith"><label for="user-2">Jane Smith</label></li>
-                <!-- Add more users as needed -->
-            </ul>
-            <div class="selected-users">
-                <div class="selected-header">
-                    <strong>Selected users</strong>
-                    <button type="button" id="clear-users" class="clear-all" style="display: none;">Clear all</button>
-                </div>
-                <ul id="selected-users-list"></ul>
-            </div>
-        </div>
-    </td>
-</tr>
+					<!-- User Selector -->
+					<div class="user-selector" id="user-selector" style="display: none;">
+						<div class="search-container">
+							<label for="user-search">Search for users</label>
+							<input type="search" id="user-search" placeholder="Search for users">
+						</div>
+						<ul id="user-list" class="user-list">
+							<li><input type="checkbox" id="user-1" value="John Doe"><label for="user-1">John Doe</label>
+							</li>
+							<li><input type="checkbox" id="user-2" value="Jane Smith"><label for="user-2">Jane Smith</label>
+							</li>
+							<!-- Add more users as needed -->
+						</ul>
+						<div class="selected-users">
+							<div class="selected-header">
+								<strong>Selected users</strong>
+								<button type="button" id="clear-users" class="clear-all" style="display: none;">Clear
+									all</button>
+							</div>
+							<ul id="selected-users-list"></ul>
+						</div>
+					</div>
+				</td>
+			</tr>
 
 
 
@@ -833,58 +1088,56 @@ function discount_details_meta_box()
 					<label for="exclusions"><span>Exclusions</span></label>
 				</td>
 				<td class="">
-					<div class="product-category-wrapper">
-						<div class="product-search">
-							<label for="product-search">Search for products</label>
-							<input class="components-text-control__input" type="search" id="product-search"
-								placeholder="Search for products">
-							<ul id="product-list" class="search-list">
-								<!-- Product items will be listed here -->
-								<li>
-									<label>
-										<input type="checkbox" name="products" value="product1">
-										<span>Product 1</span>
-									</label>
-								</li>
-								<li>
-									<label>
-										<input type="checkbox" name="products" value="product2">
-										<span>Product 2</span>
-									</label>
-								</li>
+					<div class="exclusions-product-category-wrapper">
+						<!-- Product Selector -->
+						<div class="exclusions-product-selector" id="exclusion-product-selector">
+							<div class="exclusions-search-container">
+								<label for="exclusions-product-search">Search for products</label>
+								<input type="search" id="exclusions-product-search" placeholder="Search for products">
+							</div>
+							<ul id="exclusions-product-list" class="exclusions-product-list">
+								<li><input type="checkbox" id="exclusions-product-1" value="Beanie"><label
+										for="exclusions-product-1">Beanie</label></li>
+								<li><input type="checkbox" id="exclusions-product-2" value="Beanie with Logo"><label
+										for="exclusions-product-2">Beanie with Logo</label></li>
+								<!-- Add more products as needed -->
 							</ul>
-							<button id="clear-products" type="button">Clear All Products</button>
-							<ul id="selected-products-list" class="selected-list">
-								<!-- Selected products will be listed here -->
-							</ul>
+							<div class="exclusions-selected-products" style="display: none;">
+								<div class="exclusions-selected-header">
+									<strong>Exclusions Selected products</strong>
+									<button type="button" id="exclusions-clear-products" class="exclusions-clear-all"
+										style="display: none;">Clear</button>
+								</div>
+								<ul id="exclusions-selected-products-list"></ul>
+							</div>
 						</div>
-						<div class="category-search">
-							<label for="category-search">Search for categories</label>
-							<input class="components-text-control__input" type="search" id="category-search"
-								placeholder="Search for categories">
-							<ul id="category-list" class="search-list">
-								<!-- Category items will be listed here -->
-								<li>
-									<label>
-										<input type="checkbox" name="categories" value="category1">
-										<span>Category 1</span>
-									</label>
-								</li>
-								<li>
-									<label>
-										<input type="checkbox" name="categories" value="category2">
-										<span>Category 2</span>
-									</label>
-								</li>
+						<!-- Category Selector -->
+						<div class="exclusions-category-selector" id="exclusion-category-selector">
+							<div class="exclusions-search-container">
+								<label for="exclusions-category-search">Search for categories</label>
+								<input type="search" id="exclusions-category-search" placeholder="Search for categories">
+							</div>
+							<ul id="exclusions-category-list" class="exclusions-category-list">
+								<li><input type="checkbox" id="exclusions-category-1" value="Category 1"><label
+										for="exclusions-category-1">Category 1</label></li>
+								<li><input type="checkbox" id="exclusions-category-2" value="Category 2"><label
+										for="exclusions-category-2">Category 2</label></li>
+								<!-- Add more categories as needed -->
 							</ul>
-							<button id="clear-categories" type="button">Clear All Categories</button>
-							<ul id="selected-categories-list" class="selected-list">
-								<!-- Selected categories will be listed here -->
-							</ul>
+							<div class="exclusions-selected-categories" style="display: none;">
+								<div class="exclusions-selected-header">
+									<strong>Selected categories</strong>
+									<button type="button" id="exclusions-clear-categories" class="exclusions-clear-all"
+										style="display: none;">Clear</button>
+								</div>
+								<ul id="exclusions-selected-categories-list"></ul>
+							</div>
 						</div>
 					</div>
 				</td>
 			</tr>
+
+
 			<tr>
 				<th scope="row"><label for="availability">Availability <span
 							class="dashicon dashicons dashicons-editor-help barn2-help-tip"></span></label></th>

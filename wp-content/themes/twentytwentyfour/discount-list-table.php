@@ -27,9 +27,6 @@ class Example_List_Table2 extends WP_List_Table {
 
         $this->items = [
             ['priority' => 1, 'name' => 'Summer Sale', 'type' => 'Percentage', 'applies_to' => 'All Products', 'enabled' => 1],
-            ['priority' => 2, 'name' => 'Winter Clearance', 'type' => 'Fixed Amount', 'applies_to' => 'Electronics', 'enabled' => 0],
-            ['priority' => 3, 'name' => 'Black Friday Deal', 'type' => 'Percentage', 'applies_to' => 'Clothing', 'enabled' => 1],
-            ['priority' => 4, 'name' => 'Holiday Special', 'type' => 'Fixed Amount', 'applies_to' => 'Accessories', 'enabled' => 1],
         ];
     }
 
