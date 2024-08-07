@@ -310,6 +310,23 @@ function sts_handle_ticket_submission()
             'status' =>1,
             'submitted_at' => $submitted_at_adjusted,
         ]);
+        
+        $ticket_id = $wpdb->insert_id; // Get the ID of the newly inserted ticket
+        $replied_at = current_time('mysql');
+        // Create a DateTime object and add 6 hours
+        $datetime = new DateTime($replied_at);
+        $datetime->modify('+6 hours');
+        $replied_at_adjusted = $datetime->format('Y-m-d H:i:s');
+        if ($ticket_id) {
+            $reply_table_name = $wpdb->prefix . 'support_ticket_replies';
+            $wpdb->insert($reply_table_name, [
+                'ticket_id' => $ticket_id,
+                'user_id' => $user_id,
+                'message' => $message,
+                'replied_at' => $replied_at_adjusted,
+                //'image_url' => $image_url,  // Store image URL if uploaded
+            ]);
+        }
 
         // Email details
         // $from_email = 'prokash@technobd.com';

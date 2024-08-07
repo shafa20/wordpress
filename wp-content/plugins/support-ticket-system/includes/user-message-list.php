@@ -61,7 +61,7 @@ get_header();
 
                 // Base query
                 $query = "SELECT t.*, u.display_name, 
-                 IFNULL(MAX(r.replied_at), t.submitted_at) AS last_reply_date
+                IFNULL(MAX(r.replied_at), t.submitted_at) AS last_reply_date
                 FROM $table_name_tickets AS t
                 LEFT JOIN $wpdb->users AS u ON t.user_id = u.ID
                 LEFT JOIN $table_name_replies AS r ON t.id = r.ticket_id
@@ -85,13 +85,15 @@ get_header();
 
                 // Add pagination to the query before sort by reply
               //  $query .= " ORDER BY t.submitted_at DESC LIMIT %d OFFSET %d";
-                $query .= " GROUP BY t.id ORDER BY last_reply_date DESC, t.submitted_at DESC LIMIT %d OFFSET %d";
+              $query .= " GROUP BY t.id ORDER BY last_reply_date DESC LIMIT %d OFFSET %d";
                 // Prepare variables for the query
                 $args = array($user_id, $items_per_page, $offset);
 
                 // Fetch tickets
                 $tickets = $wpdb->get_results($wpdb->prepare($query, $args));
-                
+                // echo '<pre>';
+                // print_r ($tickets);
+                // die;
                 // Total tickets for pagination
                 $count_query = "SELECT COUNT(*) FROM $table_name_tickets WHERE user_id = %d";
                 if (isset($_GET['status'])) {

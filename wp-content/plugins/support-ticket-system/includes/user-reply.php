@@ -73,7 +73,7 @@ if ($ticket_id) {
                         $replies_table = $wpdb->prefix . 'support_ticket_replies';
                         $ticket = $wpdb->get_row($wpdb->prepare("SELECT * FROM wp_support_tickets WHERE id = %d", $ticket_id));
                         $replies = $wpdb->get_results($wpdb->prepare("SELECT * FROM $replies_table WHERE ticket_id = %d ORDER BY replied_at ASC", $ticket_id));
-                        echo '<p class="initial-message">' . '</strong> ' . esc_html($ticket->message)  . '</p>';
+                       
                     
                         if ($replies) {
                             $previous_date = null;
