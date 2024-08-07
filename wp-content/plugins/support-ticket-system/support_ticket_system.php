@@ -454,7 +454,7 @@ function add_support_ticket_button_below_billing_address($order) {
     $order_id = $order->get_id();
     $order_number = $order->get_order_number();
     $home_url = home_url('/my-account/support-ticket-system/?order_id=' . $order_id);
-    echo '<a href="' . esc_url($home_url) . '" class="button support-ticket-button">Support Ticket System</a>';
+    echo '<div class="support-btn"><a href="' . esc_url($home_url) . '" class="button support-ticket-button">Support Ticket System</a></div>';
 }
 add_action('woocommerce_order_details_after_customer_details', 'add_support_ticket_button_below_billing_address');
 
