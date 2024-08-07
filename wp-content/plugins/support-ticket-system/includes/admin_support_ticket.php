@@ -706,13 +706,14 @@ function sts_load_ticket_details($ticket_id)
                     <div class="message-header-content">
                         <h3><?php echo esc_html($ticket->subject); ?></h3>
                         <div class="smoll-content">
-                            <div class="content-left">
-                                <?php if (!empty($last_reply_date)): ?>
-                                    <span><?php echo esc_html__('Last message', 'your-text-domain'); ?>
-                                        <?php echo esc_html($last_reply_date); ?></span>
-                                <?php endif; ?>
-
-                            </div>
+                        <div class="content-left">
+                            <?php if (!empty($last_reply_date)) : ?>
+                                <span><?php echo esc_html__('Last message', 'your-text-domain'); ?> <?php echo esc_html($last_reply_date); ?></span>
+                            <?php else: ?>
+                                <?php $last_reply_date = date('j F, Y, g:i A', strtotime($ticket->submitted_at)); ?>
+                                <span><?php echo esc_html__('Last message', 'your-text-domain'); ?> <?php echo esc_html($last_reply_date); ?></span>
+                            <?php endif; ?>
+                        </div>
                             <div class="content-right">
 
                                 <span class="support-id"><?php echo esc_html__('Support ID:', 'your-text-domain'); ?>
