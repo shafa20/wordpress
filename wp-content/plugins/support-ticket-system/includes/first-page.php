@@ -40,10 +40,35 @@ if (!defined('ABSPATH')) {
     </div>
 
 </div>
+<?php
+$order_id = isset($_GET['order_id']) ? absint($_GET['order_id']) : null;
 
-<script>
+?>
+<!-- <script>
     document.getElementById('create-new-support').addEventListener('click', function() {
         document.querySelector('.can-not-create-ticket.create-new-support').style.display = 'none';
         document.getElementById('support-form-container').style.display = 'block';
+    });
+</script> -->
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle support form visibility
+        function toggleSupportForm() {
+            // Hide the support list and show the support form container
+            document.querySelector('.can-not-create-ticket.create-new-support').style.display = 'none';
+            document.getElementById('support-form-container').style.display = 'block';
+        }
+
+        // Handle 'click' event
+        document.getElementById('create-new-support').addEventListener('click', toggleSupportForm);
+
+        // Handle 'order_id' parameter
+        const orderId = "<?php echo $order_id; ?>";
+        if (orderId) {
+            // Perform actions based on the presence of order_id
+            toggleSupportForm();  // Example action: Toggle form visibility if order_id is present
+        }
     });
 </script>

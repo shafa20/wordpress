@@ -100,7 +100,8 @@ if ($order_id) {
                             <span class="required"> * </span>
                         <?php endif; ?>
                     </label>
-                    <input class="your-order_id" type="text" name="sts_order_id" id="sts_order_id" value="<?php echo esc_attr($order_id); ?>"
+                    <input class="your-order_id" type="text" name="sts_order_id" id="sts_order_id" 
+                  value="<?php echo $order_id ? '#VP-INV-' . esc_attr($order_id) : esc_attr($order_id); ?>"
                         placeholder="<?php echo esc_attr($order_id_placeholder); ?>" <?php echo $order_id_required ? 'required' : ''; ?>>
                 </div>
             </div>
